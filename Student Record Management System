@@ -1,0 +1,185 @@
+"""
+PS No. 16: Student Record Management System
+Concepts Used: Lists, Tuples, Dictionaries, CRUD Operations
+"""
+
+# Dictionary to hold records where key = roll_no (int), value = student info dictionary
+# Tuples are used for immutable metadata/display headers
+# Lists are used for bulk sorting, listing, and tabular record collection
+students_db = {}
+COLUMNS = ("Roll No", "Name", "Course", "Marks")
+
+
+def validate_marks(marks_str):
+    """Validates that marks is a numeric value between 0 and 100."""
+    try:
+        marks = float(marks_str)
+        if 0 <= marks <= 100:
+            return True, int(marks) if marks.is_integer() else marks
+        return False, "Marks must be between 0 and 100."
+    except ValueError:
+        return False, "Marks must be a valid number."
+
+
+def validate_roll(roll_str):
+    """Validates that roll number is a valid positive integer."""
+    try:
+        roll = int(roll_str)
+        if roll > 0:
+            return True, roll
+        return False, "Roll number must be a positive integer."
+    except ValueError:
+        return False, "Roll number must be an integer."
+
+
+# ------------------- CRUD OPERATIONS -------------------
+
+def add_student(roll_no_in, name, course, marks_in):
+    """Create: Adds a new student record after validating unique roll and marks range."""
+    valid_roll, roll_no = validate_roll(roll_no_in)
+    if not valid_roll:
+        print(roll_no)
+        return False
+
+    if roll_no in students_db:
+        print(f"Roll number {roll_no} already exists.")
+        return False
+
+    valid_marks, marks = validate_marks(marks_in)
+    if not valid_marks:
+        print(marks)
+        return False
+
+    # Store record using a dictionary
+    students_db[roll_no] = {
+        "name": name.strip(),
+        "course": course.strip(),
+        "marks": marks
+    }
+    print(f"Record added: {roll_no} | {name.strip()} | {course.strip()} | {marks}")
+    return True
+
+
+def view_students():
+    """Read: Displays all student records in a neat tabular format."""
+    if not students_db:
+        print("No student records available.")
+        return
+
+    # Using tuples for fixed field headers and widths
+    col_widths = (10, 20, 15, 10)
+    header_row = f"{COLUMNS[0]:<{col_widths[0]}} | {COLUMNS[1]:<{col_widths[1]}} | {COLUMNS[2]:<{col_widths[2]}} | {COLUMNS[3]:<{col_widths[3]}}"
+    separator = "-" * len(header_row)
+
+    print(separator)
+    print(header_row)
+    print(separator)
+
+    # Use a list to sort keys for organized display
+    sorted_roll_list = sorted(students_db.keys())
+    for r in sorted_roll_list:
+        rec = students_db[r]
+        print(f"{r:<{col_widths[0]}} | {rec['name']:<{col_widths[1]}} | {rec['course']:<{col_widths[2]}} | {rec['marks']:<{col_widths[3]}}")
+    print(separator)
+
+
+def search_student(roll_no_in):
+    """Read / Search: Searches and displays a student record by roll number."""
+    valid_roll, roll_no = validate_roll(roll_no_in)
+    if not valid_roll:
+        print(roll_no)
+        return None
+
+    if roll_no in students_db:
+        rec = students_db[roll_no]
+        print(f"{roll_no} | {rec['name']} | {rec['course']} | {rec['marks']}")
+        return rec
+    else:
+        print(f"Roll number {roll_no} not found.")
+        return None
+
+
+def update_student(roll_no_in, new_marks_in):
+    """Update: Updates marks of an existing student."""
+    valid_roll, roll_no = validate_roll(roll_no_in)
+    if not valid_roll:
+        print(roll_no)
+        return False
+
+    if roll_no not in students_db:
+        print(f"Roll number {roll_no} not found.")
+        return False
+
+    valid_marks, new_marks = validate_marks(new_marks_in)
+    if not valid_marks:
+        print(new_marks)
+        return False
+
+    students_db[roll_no]["marks"] = new_marks
+    print(f"Marks updated: {new_marks}")
+    return True
+
+
+def delete_student(roll_no_in):
+    """Delete: Removes a student record by roll number."""
+    valid_roll, roll_no = validate_roll(roll_no_in)
+    if not valid_roll:
+        print(roll_no)
+        return False
+
+    if roll_no in students_db:
+        del students_db[roll_no]
+        print(f"Record with roll number {roll_no} deleted successfully.")
+        return True
+    else:
+        print(f"Roll number {roll_no} not found.")
+        return False
+
+
+# ------------------- MENU-DRIVEN INTERFACE -------------------
+
+def main():
+    while True:
+        print("\n=== STUDENT RECORD MANAGEMENT SYSTEM ===")
+        print("1. Add Student Record")
+        print("2. View All Student Records")
+        print("3. Search Student Record")
+        print("4. Update Student Marks")
+        print("5. Delete Student Record")
+        print("6. Exit")
+        
+        choice = input("Enter option (1-6): ").strip()
+
+        if choice == "1":
+            print("\nFormat: Roll No, Name, Course, Marks")
+            raw_data = input("Enter details (comma separated): ").split(",")
+            if len(raw_data) == 4:
+                add_student(raw_data[0], raw_data[1], raw_data[2], raw_data[3])
+            else:
+                print("Invalid input format. Expected 4 comma-separated values.")
+
+        elif choice == "2":
+            view_students()
+
+        elif choice == "3":
+            roll = input("Enter roll number to search: ").strip()
+            search_student(roll)
+
+        elif choice == "4":
+            roll = input("Enter roll number to update: ").strip()
+            marks = input("Enter new marks (0-100): ").strip()
+            update_student(roll, marks)
+
+        elif choice == "5":
+            roll = input("Enter roll number to delete: ").strip()
+            delete_student(roll)
+
+        elif choice == "6":
+            print("Exiting system. Goodbye!")
+            break
+        else:
+            print("Invalid option. Please choose between 1 and 6.")
+
+
+if __name__ == "__main__":
+    main()
